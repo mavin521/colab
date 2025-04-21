@@ -1,18 +1,15 @@
-name: Auto Colab Run
+name: Run Colab Notebook
 
 on:
   schedule:
-    - cron: "0 */6 * * *" # 每6小时执行一次
-  workflow_dispatch: # 手动触发也支持
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
 
 jobs:
   run-colab:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -21,27 +18,21 @@ jobs:
       - name: Install Puppeteer
         run: npm install puppeteer
 
-      - name: Run Colab via Puppeteer
+      - name: Run Colab Notebook
         run: |
           echo "const puppeteer = require('puppeteer');
 
           (async () => {
-            const browser = await puppeteer.launch({
-              headless: true,
-              args: ['--no-sandbox', '--disable-setuid-sandbox']
-            });
-
+            const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
             const page = await browser.newPage();
-            await page.goto('https://colab.research.google.com/github/mavin521/colab/blob/main/colab_streamer.ipynb', {
-              waitUntil: 'networkidle2',
-              timeout: 60000
-            });
+            await page.goto('https://colab.research.google.com/github/mavin521/colab/blob/main/colab_streamer.ipynb', { waitUntil: 'networkidle2' });
 
-            await page.waitForSelector('paper-button[command=\"connect\"]', {timeout: 60000});
+            // 点击“连接”
+            await page.waitForSelector('paper-button[command=\"connect\"]');
             await page.click('paper-button[command=\"connect\"]');
-            console.log('✅ 成功点击运行');
 
-            await page.waitForTimeout(60000); // 保持页面1分钟
+            console.log('✅ 成功点击 Colab 的运行按钮');
+            await page.waitForTimeout(60000); // 保持页面运行1分钟
             await browser.close();
-          })();" > colab.js
-          node colab.js
+          })();" > run_colab.js
+          node run_colab.js
