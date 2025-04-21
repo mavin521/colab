@@ -1,14 +1,39 @@
-name: Auto Run Colab
+name: Auto Colab Headless Trigger
 
 on:
   schedule:
-    - cron: '0 */6 * * *'   # 每6小时运行一次
-  workflow_dispatch:
+    - cron: "0 */6 * * *"  # 每6小时运行
+  workflow_dispatch:       # 手动运行支持
 
 jobs:
-  run_colab:
+  run-colab:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Trigger Colab
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Puppeteer
         run: |
-          curl -s -X POST "https://colab.research.google.com/github/mavin521/colab/blob/main/colab_streamer.ipynb"
+          npm install puppeteer
+
+      - name: Launch Colab notebook headless
+        run: |
+          echo "const puppeteer = require('puppeteer');
+
+          (async () => {
+            const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox']});
+            const page = await browser.newPage();
+            await page.goto('https://colab.research.google.com/github/mavin521/colab/blob/main/colab_streamer.ipynb', {waitUntil: 'networkidle2'});
+            await page.waitForSelector('paper-button[command="connect"]');
+            await page.click('paper-button[command="connect"]');
+            console.log('✅ Colab 运行已触发');
+            await new Promise(resolve => setTimeout(resolve, 30000));
+            await browser.close();
+          })();" > run-colab.js
+          node run-colab.js
