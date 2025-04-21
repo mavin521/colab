@@ -1,0 +1,11 @@
+{
+  "name": "colab-runner",
+  "version": "1.0.0",
+  "main": "run_colab.js",
+  "scripts": {
+    "start": "node run_colab.js"
+  },
+  "dependencies": {
+    "puppeteer": "^21.0.0"
+  }
+}
