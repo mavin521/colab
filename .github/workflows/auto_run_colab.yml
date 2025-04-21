@@ -1,39 +1,47 @@
-name: Auto Colab Headless Trigger
+name: Auto Colab Run
 
 on:
   schedule:
-    - cron: "0 */6 * * *"  # 每6小时运行
-  workflow_dispatch:       # 手动运行支持
+    - cron: "0 */6 * * *" # 每6小时执行一次
+  workflow_dispatch: # 手动触发也支持
 
 jobs:
   run-colab:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: '18'
 
       - name: Install Puppeteer
-        run: |
-          npm install puppeteer
+        run: npm install puppeteer
 
-      - name: Launch Colab notebook headless
+      - name: Run Colab via Puppeteer
         run: |
           echo "const puppeteer = require('puppeteer');
 
           (async () => {
-            const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox']});
+            const browser = await puppeteer.launch({
+              headless: true,
+              args: ['--no-sandbox', '--disable-setuid-sandbox']
+            });
+
             const page = await browser.newPage();
-            await page.goto('https://colab.research.google.com/github/mavin521/colab/blob/main/colab_streamer.ipynb', {waitUntil: 'networkidle2'});
-            await page.waitForSelector('paper-button[command="connect"]');
-            await page.click('paper-button[command="connect"]');
-            console.log('✅ Colab 运行已触发');
-            await new Promise(resolve => setTimeout(resolve, 30000));
+            await page.goto('https://colab.research.google.com/github/mavin521/colab/blob/main/colab_streamer.ipynb', {
+              waitUntil: 'networkidle2',
+              timeout: 60000
+            });
+
+            await page.waitForSelector('paper-button[command=\"connect\"]', {timeout: 60000});
+            await page.click('paper-button[command=\"connect\"]');
+            console.log('✅ 成功点击运行');
+
+            await page.waitForTimeout(60000); // 保持页面1分钟
             await browser.close();
-          })();" > run-colab.js
-          node run-colab.js
+          })();" > colab.js
+          node colab.js
