@@ -1,0 +1,15 @@
+name: Auto Run Colab
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # 每6小时自动运行一次
+  workflow_dispatch:
+
+jobs:
+  run_colab:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open Colab Notebook
+        uses: wei/curl@v1
+        with:
+          args: curl -s -X POST https://colab.research.google.com/github/mavin521/colab/blob/main/colab_streamer.ipynb
