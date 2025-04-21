@@ -1,0 +1,25 @@
+name: Run Colab Notebook Every Hour
+
+on:
+  schedule:
+    - cron: '0 * * * *' # 每小时执行一次
+  workflow_dispatch:     # 允许手动触发
+
+jobs:
+  run-colab:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Colab Notebook
+        run: node run_colab.js
